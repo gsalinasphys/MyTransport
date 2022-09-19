@@ -1,0 +1,209 @@
+import sys
+from math import cos, sin, sqrt
+
+import numpy as np
+from matplotlib import pyplot as plt
+
+location = "/home/gsalinas/GitHub/PyTransport/PyTransport" # This should be the location of the PyTransport folder folder
+sys.path.append(location) # Sets up python path to give access to PyTransSetup
+
+import PyTransSetup
+
+PyTransSetup.pathSet()  # This adds the other paths that PyTransport uses to the python path
+
+import PyTransRapidCan as PyT
+import PyTransScripts as PyS
+
+########################### Set some field values and field derivatives in cosmic time ####################################################
+
+nF=PyT.nF()
+nP=PyT.nP()
+
+pval = np.array([3.4e-11, 5e-16, 2.5e-3, 1e-10]) # Parameter values, format [V0, alpha, m, rho0]
+fields = np.array([sqrt(pval[1]/pval[2])/(3*pval[0])**0.25, 0.]) # Initial values of the fields
+
+V = PyT.V(fields, pval) # Calculate potential from some initial conditions
+dV = PyT.dV(fields, pval) # Calculate derivatives of potential
+
+phidot0 = np.array([0., fields[0]*pval[2]])    # Initial field velocities
+initial = np.concatenate((fields, phidot0)) # Sets an array containing field values and there derivative in cosmic time 
+
+
+################################## Run and plot the background fiducial run ################################################################
+print('Starting background evolution.')
+
+Nstart, Nend = 0.0, 100
+t = np.linspace(Nstart, Nend, 1_000)
+
+tols = np.array([10**-8, 10**-8])
+back = PyT.backEvolve(t, initial, pval, tols, True)
+
+fig, ax = plt.subplots(2, 2)
+ax[0, 0].plot(back[:,0], back[:,1], 'g')
+ax[0, 0].set_xlabel(r'$N$', fontsize=16)
+ax[0, 0].set_ylabel(r'$\phi_1$', fontsize=16)
+
+ax[1, 0].plot(back[:,0], back[:,2], 'r')
+ax[1, 0].set_xlabel(r'$N$', fontsize=16)
+ax[1, 0].set_ylabel(r'$\phi_2$', fontsize=16)
+
+ax[0, 1].plot(back[:,0], back[:,3], 'r')
+ax[0, 1].set_xlabel(r'$N$', fontsize=16)
+ax[0, 1].set_ylabel(r'$\dot{\phi_1}$', fontsize=16)
+ax[0, 1].ticklabel_format(useOffset=False)
+
+ax[1, 1].plot(back[:,0], back[:,4], 'r')
+ax[1, 1].set_xlabel(r'$N$', fontsize=16)
+ax[1, 1].set_ylabel(r'$\dot{\phi_2}$', fontsize=16)
+ax[1, 1].ticklabel_format(useOffset=False)
+
+plt.tight_layout()
+plt.savefig('Examples/RapidTurnCan/Background.png')
+plt.clf()
+
+# Find Hubble rate
+Hs = np.array([PyT.H(elem, pval) for elem in back[:, 1:]])
+plt.plot(back[:, 0], Hs)
+plt.title('Hubble parameter')
+plt.xlabel(r'$N$', fontsize=16)
+plt.ylabel(r'$H$', fontsize=16)
+plt.savefig('Examples/RapidTurnCan/Hubble.png')
+plt.clf()
+
+# Find epsilon
+dt = t[1] - t[0]
+epsilon = -np.gradient(Hs, dt)/Hs
+plt.plot(back[:, 0], epsilon)
+plt.title('Epsilon parameter')
+plt.xlabel(r'$N$', fontsize=16)
+plt.ylabel(r'$\epsilon$', fontsize=16)
+plt.savefig('Examples/RapidTurnCan/Epsilon.png')
+plt.clf()
+
+# # Turn rate
+def turn_rate(hat_sigma: np.ndarray, hat_s: np.ndarray, dt: float) -> float:
+    return np.sum(hat_s * np.gradient(hat_sigma, dt, axis=0), axis=1)
+    
+hat_sigma = np.array([[cos(theta), sin(theta)] for theta in np.arctan(back[:, 2]/back[:, 1])])
+hat_thetas = np.array([[-sin(theta), cos(theta)] for theta in np.arctan(back[:, 2]/back[:, 1])])
+
+plt.plot(back[:, 0], turn_rate(hat_rhos, hat_thetas, dt))
+plt.title('Turn rate')
+plt.xlabel(r'$N$', fontsize=16)
+plt.ylabel(r'$\omega$', fontsize=16)
+plt.savefig('Examples/RapidTurnCan/TurnRate.png')
+plt.clf()
+
+plt.plot(back[:, 0], np.gradient(turn_rate(hat_rhos, hat_thetas, dt), dt) / turn_rate(hat_rhos, hat_thetas, dt))
+plt.title('Turn rate')
+plt.xlabel(r'$N$', fontsize=16)
+plt.ylabel(r'$\omega^\prime / \omega$', fontsize=16)
+plt.savefig('Examples/RapidTurnCan/DTurnRate.png')
+plt.clf()
+
+print('Done with background evolution, starting 2-pt correlation calculation.')
+
+# ############################################################################################################################################
+# # set a pivot scale which exits after certain time using the background run -- a spline
+# # is used to find field and field velocity values after Nexit number of e-folds, this gives H, and 
+# # then k=aH gives the k pivot scale
+# # in this example we treat this scale as k_t
+
+# NExit = 11
+# k = PyS.kexitN(NExit, back, pval, PyT) 
+
+# # other scales can then be defined wrt to k
+
+
+# ################################# example 2pt run ##########################################################################################
+
+# NB = 8.0
+# Nstart, backExitMinus = PyS.ICsBE(NB, k, back, pval, PyT) #find conditions for 6 e-folds before horizon crossing of k mode
+
+# tsig = np.linspace(Nstart, back[-1,0], 1_000)  # array of times (e-folds) at which output is returned -- initial time should correspond to initial field
+#                                      # and velocity values which will be fed in to the functions which evolve correlations
+
+
+# # run the sigma routine to calc and plot the evolution of power spectrum value for this k -- can be
+# # repeated to build up the spectrum, here we run twice to get an crude estimate for ns
+# twoPt = PyT.sigEvolve(tsig, k, backExitMinus, pval, tols, True) # puts information about the two point fuction in twoPt array
+# zz1 = twoPt[:, 1] # the second column is the 2pt of zeta
+# sigma = twoPt[:, 1+1+2*nF:] # the last 2nF* 2nF columns correspond to the evolution of the sigma matrix
+# zz1a = zz1[-1] # the value of the power spectrum for this k value at the end of the run
+
+# # twoPt = PyT.sigEvolve(tsig, k+.1*k, backExitMinus, pval,tols, True)
+# # zz2 = twoPt[:,1]
+# # zz2a = zz2[-1]
+# # n_s = (np.log(zz2a)-np.log(zz1a))/(np.log(k+.1*k)-np.log(k))+4.0
+
+# pairs = [(0,0), (0,1), (1,1)]
+# labels = ['$\\Sigma^{\\rho\\rho}$', '$\\Sigma^{\\theta\\rho}$', '$\\Sigma^{\\theta\\theta}$']
+# for ii, pair in enumerate(pairs):
+#     plt.plot(twoPt[:, 0], np.abs(sigma[:, pair[0] + 2*nF*pair[1]]), label=labels[ii])
+# plt.title(r'$\Sigma$ evolution',fontsize=16)
+# plt.legend(fontsize=16)
+# plt.ylabel(r'Aboslute 2pt field correlations', fontsize=20) 
+# plt.xlabel(r'$N$', fontsize=20)
+# plt.yscale('log')
+# plt.tight_layout()
+# plt.savefig('Examples/RapidTurn/Field2pt.png')
+# plt.clf()
+
+# plt.plot(tsig, zz1[:])
+# plt.title(r'$P_\zeta$ evolution',fontsize=16);
+# plt.ylabel(r'$P_\zeta(k)$', fontsize=20) 
+# plt.xlabel(r'$N$', fontsize=20)
+# plt.yscale('log')
+# plt.tight_layout()
+# plt.savefig('Examples/RapidTurn/PowerSpectrum.png')
+# plt.clf()
+
+# print('Done with 2-pt, starting bispectrum calculation.')
+
+# ###################################### example bispectrum run ##############################################################################
+
+# # set three scales in FLS manner (using alpha, beta notation)
+# alpha = 0.0
+# beta = 1.0
+
+# k1 = k/2 - beta*k/2.
+# k2 = k/4*(1+alpha+beta)
+# k3 = k/4*(1-alpha+beta)
+
+# # find initial conditions for 6 e-folds before the smallest k (which exits the horizon first) crosses the horizon
+# kM = np.min(np.array([k1, k2, k3]))
+# Nstart, backExitMinus = PyS.ICsBM(NB, kM, back, pval, PyT)
+# print(Nstart, backExitMinus)
+
+# # run the three point evolution for this triangle
+# talp = np.linspace(Nstart, back[-100_000, 0], 1_000_000)
+# threePt = PyT.alphaEvolve(talp, k1, k2, k3, backExitMinus, pval, tols, True) # all data from three point run goes into threePt array
+# print(threePt)
+# alpha = threePt[:,1+4+2*nF+6*2*nF*2*nF:]        # this now contains the 3pt of the fields and field derivative pertruabtions
+# zzz = threePt[:,1:5] # this contains the evolution of two point of zeta for each k mode involved and the 3pt of zeta
+
+# for ii in range(0,2):
+#     for jj in range(0,2):
+#         for kk in range(0,2):
+#             plt.plot(talp, np.abs(alpha[:,ii + 2*nF*jj + 2*nF*2*nF*kk]))
+# plt.title(r'$\alpha$ evolution',fontsize=15)
+# plt.legend(fontsize=15)
+# plt.ylabel(r'Absolute 3pt field correlations', fontsize=20)
+# plt.xlabel(r'$N$', fontsize=15)
+# plt.yscale('log')
+# plt.legend(fontsize=15)
+# plt.tight_layout()
+# plt.savefig("Examples/RapidTurn/Field3pt.png")
+# plt.clf()
+
+# fnl = 5.0/6.0*zzz[:,3]/(zzz[:,1]*zzz[:,2]  + zzz[:,0]*zzz[:,1] + zzz[:,0]*zzz[:,2])
+# plt.plot(talp, fnl,'r')
+# plt.title(r'$f_{NL}$ evolution',fontsize=15)
+# plt.legend(fontsize=15); plt.ylabel(r'$f_{NL}$', fontsize=20)
+# plt.xlabel(r'$N$', fontsize=15)
+# plt.legend(fontsize=15)
+# plt.tight_layout()
+# plt.savefig("Examples/RapidTurn/fNL.png")
+# plt.clf()
+
+# print('Done with bispectrum.')
