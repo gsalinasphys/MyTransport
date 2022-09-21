@@ -31,9 +31,9 @@ import PyTransScripts as PyS
 nF=PyT.nF()
 nP=PyT.nP()
 
-pval = np.array([1/600, 9, 2e-5]) # Parameter values, format [alpha, R]
+pval = np.array([1/600, 9, 2e-5]) # Parameter values, format [alpha, R, mphi]
 r0, theta0 = 0.99, pi/4
-fields = r0 * np.array([cos(theta0), sin(theta0)]) # Initial values of the fields
+fields = r0 * np.array([cos(theta0), sin(theta0)]) # Initial values of the fields [phi, chi]
 
 V = PyT.V(fields, pval) # Calculate potential from some initial conditions
 dV = PyT.dV(fields, pval) # Calculate derivatives of potential
@@ -155,7 +155,7 @@ n_s = (np.log(zz2a)-np.log(zz1a))/(np.log(k+.1*k)-np.log(k))+4.0
 print(f'n_s: {n_s}')
 
 pairs = [(0,0), (0,1), (1,1)]
-labels = ['$\\Sigma^{rr}$', '$\\Sigma^{r\\theta}$', '$\\Sigma^{\\theta\\theta}$']
+labels = ['$P^{\\phi\\phi}_\\phi$', '$P^{\\phi\\chi}_\\phi$', '$P^{\\chi\\chi}_\\phi$']
 for ii, pair in enumerate(pairs):
     plt.plot(twoPt[:, 0], np.abs(sigma[:, pair[0] + 2*nF*pair[1]]), label=labels[ii])
 plt.title(r'$\Sigma$ evolution',fontsize=16)
@@ -172,9 +172,9 @@ sig_rth = np.abs(sigma[:, 2*nF])
 sig_thth = np.abs(sigma[:, 2*nF + 1])
 i_exit = np.argmin(np.abs(twoPt[:, 0] - NExit))
 print('At horizon crossing:')
-print('$\\Sigma^{rr}: $', sig_rr[i_exit])
-print('$\\Sigma^{r\\theta}: $', sig_rth[i_exit])
-print('$\\Sigma^{\\theta\\theta}$: ', sig_thth[i_exit])
+print('$P^{\\phi\\phi}_\\phi$: ', sig_rr[i_exit])
+print('$P^{\\phi\\chi}_\\phi$: ', sig_rth[i_exit])
+print('$P^{\\chi\\chi}_\\phi$: ', sig_thth[i_exit])
 
 plt.plot(tsig, zz1[:] * k**3 / 2 / np.pi**2)
 plt.title(r'$P_\zeta$ evolution',fontsize=16);
@@ -185,6 +185,8 @@ plt.tight_layout()
 plt.savefig('Examples/Angular/PowerSpectrum.png')
 plt.clf()
 print(f'Power spectrum: {zz1[:][-1] * k**3 / 2 / np.pi**2} at k = {k}')
+
+
 
 print('Done with 2-pt, starting bispectrum calculation.')
 

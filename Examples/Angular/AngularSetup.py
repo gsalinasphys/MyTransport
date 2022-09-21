@@ -12,7 +12,7 @@ import PyTransSetup  # the above commands allows python to find the PyTransSetup
 
 nF = 2  # number of fields
 nP = 3  # number of parameters
-f = sym.symarray('f',nF)   # an array representing the nF fields present for this model
+f = sym.symarray('f',nF)   # an array representing the nF fields present for this model [phi, chi]
 p = sym.symarray('p',nP)   # an array representing the nP parameters needed to define this model, format [alpha, R, mphi]
 
 V = p[0]/2 * p[2]**2 * (f[0]**2 + p[1]*f[1]**2)   # this is the potential written in sympy notation
