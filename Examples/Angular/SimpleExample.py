@@ -47,7 +47,7 @@ print('Starting background evolution.')
 Nstart, Nend = 0., 150
 t = np.linspace(Nstart, Nend, 100_000)
 
-tols = np.array([10**-1, 10**-1])
+tols = np.array([10**-6, 10**-6])
 back = PyT.backEvolve(t, initial, pval, tols, True)
 
 # def lastNe(back: np.ndarray, N: int = 60) -> np.ndarray:
@@ -125,6 +125,7 @@ print("Initial epsilon: ", epsilon[0])
 # in this example we treat this scale as k_t
 
 NExit = Nend - 55
+print('Horizon exit at: ', NExit)
 k = PyS.kexitN(NExit, back, pval, PyT) 
 
 # other scales can then be defined wrt to k
@@ -147,7 +148,7 @@ zz1 = twoPt[:, 1] # the second column is the 2pt of zeta
 sigma = twoPt[:, 1+1+2*nF:] # the last 2nF* 2nF columns correspond to the evolution of the sigma matrix
 zz1a = zz1[-1] # the value of the power spectrum for this k value at the end of the run
 
-twoPt = PyT.sigEvolve(tsig, k+.1*k, backExitMinus, pval,tols, True)
+twoPt = PyT.sigEvolve(tsig, k+.1*k, backExitMinus, pval, tols, True)
 zz2 = twoPt[:,1]
 zz2a = zz2[-1]
 n_s = (np.log(zz2a)-np.log(zz1a))/(np.log(k+.1*k)-np.log(k))+4.0
@@ -166,6 +167,15 @@ plt.tight_layout()
 plt.savefig('Examples/Angular/Field2pt.png')
 plt.clf()
 
+sig_rr = np.abs(sigma[:, 0])
+sig_rth = np.abs(sigma[:, 2*nF])
+sig_thth = np.abs(sigma[:, 2*nF + 1])
+i_exit = np.argmin(np.abs(twoPt[:, 0] - NExit))
+print('At horizon crossing:')
+print('$\\Sigma^{rr}: $', sig_rr[i_exit])
+print('$\\Sigma^{r\\theta}: $', sig_rth[i_exit])
+print('$\\Sigma^{\\theta\\theta}$: ', sig_thth[i_exit])
+
 plt.plot(tsig, zz1[:] * k**3 / 2 / np.pi**2)
 plt.title(r'$P_\zeta$ evolution',fontsize=16);
 plt.ylabel(r'$P_\zeta(k)$', fontsize=20) 
@@ -180,13 +190,15 @@ print('Done with 2-pt, starting bispectrum calculation.')
 
 ###################################### example bispectrum run ##############################################################################
 
-# set three scales in FLS manner (using alpha, beta notation)
-alpha = 0.
-beta = 0.99
+# # set three scales in FLS manner (using alpha, beta notation)
+# alpha = 0.
+# beta = 1/3.
 
-k1 = k/2 - beta*k/2.
-k2 = k/4*(1+alpha+beta)
-k3 = k/4*(1-alpha+beta)
+# k1 = k/2 - beta*k/2.
+# k2 = k/4*(1+alpha+beta)
+# k3 = k/4*(1-alpha+beta)
+
+k1, k2, k3 = k, k, k
 
 # find initial conditions for NB e-folds before the smallest k (which exits the horizon first) crosses the horizon
 kM = np.min(np.array([k1, k2, k3]))
