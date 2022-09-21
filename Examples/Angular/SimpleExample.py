@@ -163,6 +163,7 @@ plt.legend(fontsize=16)
 plt.ylabel(r'Aboslute 2pt field correlations', fontsize=20) 
 plt.xlabel(r'$N$', fontsize=20)
 plt.yscale('log')
+plt.axvline(NExit, c='k', linestyle='--')
 plt.tight_layout()
 plt.savefig('Examples/Angular/Field2pt.png')
 plt.clf()
@@ -176,7 +177,9 @@ print('$P^{\\phi\\phi}_\\phi$: ', sig_rr[i_exit])
 print('$P^{\\phi\\chi}_\\phi$: ', sig_rth[i_exit])
 print('$P^{\\chi\\chi}_\\phi$: ', sig_thth[i_exit])
 
-plt.plot(tsig, zz1[:] * k**3 / 2 / np.pi**2)
+Pzeta = zz1[:] * k**3 / 2 / np.pi**2
+plt.plot(tsig, Pzeta)
+plt.axvline(NExit, c='k', linestyle='--')
 plt.title(r'$P_\zeta$ evolution',fontsize=16);
 plt.ylabel(r'$P_\zeta(k)$', fontsize=20) 
 plt.xlabel(r'$N$', fontsize=20)
@@ -185,7 +188,7 @@ plt.tight_layout()
 plt.savefig('Examples/Angular/PowerSpectrum.png')
 plt.clf()
 print(f'Power spectrum: {zz1[:][-1] * k**3 / 2 / np.pi**2} at k = {k}')
-
+print(f'Power spectrum at horizon crossing: {zz1[:][i_exit] * k**3 / 2 / np.pi**2}')
 
 
 print('Done with 2-pt, starting bispectrum calculation.')
