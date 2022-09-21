@@ -5,7 +5,7 @@ import sys
 import sympy as sym
 from gravipy.tensorial import *
 
-location = "/home/gsalinas/GitHub/PyTransport/PyTransport" # this should be the location of the PyTransport folder
+location = "/home/gsalinas/GitHub/MyTransport/PyTransport" # this should be the location of the PyTransport folder
 sys.path.append(location)  # we add this location to the python path
 
 import PyTransSetup  # the above commands allows python to find the PyTransSetup module and import it

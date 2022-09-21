@@ -5,7 +5,7 @@ import numpy as np
 import sympy as sym
 from matplotlib import pyplot as plt
 
-location = "/home/gsalinas/GitHub/PyTransport/PyTransport" # This should be the location of the PyTransport folder folder
+location = "/home/gsalinas/GitHub/MyTransport/PyTransport" # This should be the location of the PyTransport folder folder
 sys.path.append(location) # Sets up python path to give access to PyTransSetup
 
 import PyTransSetup
