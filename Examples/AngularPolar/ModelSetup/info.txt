@@ -1,0 +1,10 @@
+Fields: (phi, chi)
+Parameters: (alpha, R, m_phi)
+
+Potential:
+
+V = alpha*m_phi**2*(R*chi**2 + phi**2)/2
+
+Field space metric:
+
+G = Matrix([[6*alpha/(phi**4 + 2*phi**2*chi**2 - 2*phi**2 + chi**4 - 2*chi**2 + 1), 0], [0, 6*alpha/(phi**4 + 2*phi**2*chi**2 - 2*phi**2 + chi**4 - 2*chi**2 + 1)]])

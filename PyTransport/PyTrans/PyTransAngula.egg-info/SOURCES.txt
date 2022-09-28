@@ -1,0 +1,8 @@
+moduleSetup.py
+setup.cfg
+/home/gsalinas/GitHub/MyTransport/PyTransport/PyTrans/PyTrans.cpp
+/home/gsalinas/GitHub/MyTransport/PyTransport/PyTrans/../CppTrans/stepper/rkf45.cpp
+PyTransAngula.egg-info/PKG-INFO
+PyTransAngula.egg-info/SOURCES.txt
+PyTransAngula.egg-info/dependency_links.txt
+PyTransAngula.egg-info/top_level.txt
