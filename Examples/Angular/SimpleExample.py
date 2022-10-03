@@ -1,6 +1,5 @@
 import sys
 from math import cos, pi, sin, sqrt
-from tkinter import NS
 
 import numpy as np
 import sympy as sym
@@ -58,10 +57,10 @@ initial = np.concatenate((fields, phidot0)) # Sets an array containing field val
 ################################## Run and plot the background fiducial run ################################################################
 print('Starting background evolution.')
 
-Nstart, Nend = 0., 100
+Nstart, Nend = 0., 500
 t = np.linspace(Nstart, Nend, 100_000)
 
-tols = np.array([10**-6, 10**-6])
+tols = np.array([10**-8, 10**-8])
 back = PyT.backEvolve(t, initial, pval, tols, True)
 
 # def lastNe(back: np.ndarray, N: int = 60) -> np.ndarray:
