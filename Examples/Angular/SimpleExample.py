@@ -246,50 +246,48 @@ print(f'Power spectrum at horizon crossing: {Pzeta[i_exit]}')
 
 print('Done with 2-pt, starting bispectrum calculation.')
 
-# ###################################### example bispectrum run ##############################################################################
+###################################### example bispectrum run ##############################################################################
 
-# # # set three scales in FLS manner (using alpha, beta notation)
-# # alpha = 0.
-# # beta = 1/3.
+# set three scales in FLS manner (using alpha, beta notation)
+alpha = 0.
+beta = 0.99
 
-# # k1 = k/2 - beta*k/2.
-# # k2 = k/4*(1+alpha+beta)
-# # k3 = k/4*(1-alpha+beta)
+k1 = k/2 - beta*k/2.
+k2 = k/4*(1+alpha+beta)
+k3 = k/4*(1-alpha+beta)
 
-# k1, k2, k3 = k, k, k
+# find initial conditions for NB e-folds before the smallest k (which exits the horizon first) crosses the horizon
+kM = np.min(np.array([k1, k2, k3]))
+Nstart, backExitMinus = PyS.ICsBM(NB, kM, back, pval, PyT)
+print(f"3-pt calculation starts at: {Nstart} e-folds")
 
-# # find initial conditions for NB e-folds before the smallest k (which exits the horizon first) crosses the horizon
-# kM = np.min(np.array([k1, k2, k3]))
-# Nstart, backExitMinus = PyS.ICsBM(NB, kM, back, pval, PyT)
-# print(f"3-pt calculation starts at: {Nstart} e-folds")
+# run the three point evolution for this triangle
+talp = np.linspace(Nstart, Nend, 10_000)
+threePt = PyT.alphaEvolve(talp, k1, k2, k3, backExitMinus, pval, tols, True) # all data from three point run goes into threePt array
+alpha = threePt[:,1+4+2*nF+6*2*nF*2*nF:]        # this now contains the 3pt of the fields and field derivative pertruabtions
+zzz = threePt[:,1:5] # this contains the evolution of two point of zeta for each k mode involved and the 3pt of zeta
 
-# # run the three point evolution for this triangle
-# talp = np.linspace(Nstart, Nend, 10_000)
-# threePt = PyT.alphaEvolve(talp, k1, k2, k3, backExitMinus, pval, tols, True) # all data from three point run goes into threePt array
-# alpha = threePt[:,1+4+2*nF+6*2*nF*2*nF:]        # this now contains the 3pt of the fields and field derivative pertruabtions
-# zzz = threePt[:,1:5] # this contains the evolution of two point of zeta for each k mode involved and the 3pt of zeta
+for ii in range(0,2):
+    for jj in range(0,2):
+        for kk in range(0,2):
+            plt.plot(talp, np.abs(alpha[:,ii + 2*nF*jj + 2*nF*2*nF*kk]))
+plt.title(r'$\alpha$ evolution',fontsize=15)
+plt.ylabel(r'Absolute 3pt field correlations', fontsize=20)
+plt.xlabel(r'$N$', fontsize=15)
+plt.yscale('log')
+plt.tight_layout()
+plt.savefig("Examples/Angular/Field3pt.png")
+plt.clf()
 
-# for ii in range(0,2):
-#     for jj in range(0,2):
-#         for kk in range(0,2):
-#             plt.plot(talp, np.abs(alpha[:,ii + 2*nF*jj + 2*nF*2*nF*kk]))
-# plt.title(r'$\alpha$ evolution',fontsize=15)
-# plt.ylabel(r'Absolute 3pt field correlations', fontsize=20)
-# plt.xlabel(r'$N$', fontsize=15)
-# plt.yscale('log')
-# plt.tight_layout()
-# plt.savefig("Examples/Angular/Field3pt.png")
-# plt.clf()
+fnl = 5.0/6.0*zzz[:,3]/(zzz[:,1]*zzz[:,2]  + zzz[:,0]*zzz[:,1] + zzz[:,0]*zzz[:,2])
+plt.plot(talp, fnl,'r')
+plt.title(r'$f_{NL}$ evolution',fontsize=15)
+plt.ylabel(r'$f_{NL}$', fontsize=20)
+plt.xlabel(r'$N$', fontsize=15)
+plt.tight_layout()
+plt.savefig("Examples/Angular/fNL.png")
+plt.clf()
 
-# fnl = 5.0/6.0*zzz[:,3]/(zzz[:,1]*zzz[:,2]  + zzz[:,0]*zzz[:,1] + zzz[:,0]*zzz[:,2])
-# plt.plot(talp, fnl,'r')
-# plt.title(r'$f_{NL}$ evolution',fontsize=15)
-# plt.ylabel(r'$f_{NL}$', fontsize=20)
-# plt.xlabel(r'$N$', fontsize=15)
-# plt.tight_layout()
-# plt.savefig("Examples/Angular/fNL.png")
-# plt.clf()
+print(f'fNL: {np.median(fnl[len(talp)//5:])}')
 
-# print(f'fNL: {np.median(fnl[len(talp)//5:])}')
-
-# print('Done with bispectrum.')
+print('Done with bispectrum.')
