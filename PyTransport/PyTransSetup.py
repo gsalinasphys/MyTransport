@@ -76,7 +76,8 @@ def pathSet():
     sys.path.append(dir)
     sys.path.append(path1)
     sys.path.append(path2)
-
+    print(path1)
+    print(path2)
 
 def compileName(name,NC=False):    
     directory(NC)
