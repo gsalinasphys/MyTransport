@@ -86,6 +86,8 @@ plt.tight_layout()
 plt.savefig('Examples/Angular/Background.png')
 plt.clf()    
 
+print(back[:, 1:])
+
 # Find Hubble rate
 Hs = np.array([PyT.H(elem, pval) for elem in back[:, 1:]])
 plt.plot(back[:, 0], Hs)
@@ -250,7 +252,7 @@ print('Done with 2-pt, starting bispectrum calculation.')
 
 # set three scales in FLS manner (using alpha, beta notation)
 alpha = 0.
-beta = 0.99
+beta = 1/3
 
 k1 = k/2 - beta*k/2.
 k2 = k/4*(1+alpha+beta)
